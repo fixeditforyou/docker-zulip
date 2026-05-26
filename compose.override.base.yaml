@@ -1,0 +1,45 @@
+---
+secrets:
+  zulip__postgres_password:
+    environment: "ZULIP__POSTGRES_PASSWORD"
+  zulip__memcached_password:
+    environment: "ZULIP__MEMCACHED_PASSWORD"
+  zulip__rabbitmq_password:
+    environment: "ZULIP__RABBITMQ_PASSWORD"
+  zulip__redis_password:
+    environment: "ZULIP__REDIS_PASSWORD"
+  zulip__secret_key:
+    environment: "ZULIP__SECRET_KEY"
+  zulip__email_password:
+    environment: "ZULIP__EMAIL_PASSWORD"
+  zulip__social_auth_google_secret:
+    environment: "ZULIP__SOCIAL_AUTH_GOOGLE_SECRET"
+
+services:
+  zulip:
+    environment:
+      SETTING_EXTERNAL_HOST: "${ZULIP__DOMAIN}"
+      SETTING_ZULIP_ADMINISTRATOR: "${ZULIP__ADMIN}"
+
+      LOADBALANCER_IPS: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
+      SETTING_EMAIL_HOST: "smtp.postmarkapp.com"
+      SETTING_EMAIL_HOST_USER: "${ZULIP__EMAIL_USER}"
+      SETTING_EMAIL_PORT: "587"
+      SETTING_EMAIL_USE_TLS: True
+
+      ZULIP_AUTH_BACKENDS: "EmailAuthBackend,GoogleAuthBackend"
+      SETTING_SOCIAL_AUTH_GOOGLE_KEY: "${ZULIP__SOCIAL_AUTH_GOOGLE_KEY}"
+
+      SETTING_ZULIP_SERVICE_PUSH_NOTIFICATIONS: True
+      SETTING_ZULIP_SERVICE_SUBMIT_USAGE_STATISTICS: False
+
+    secrets:
+      - zulip__social_auth_google_secret
+
+
+  # Override for latest Postgres
+  database:
+    build:
+      context:    ./docker/postgres
+      dockerfile: Dockerfile

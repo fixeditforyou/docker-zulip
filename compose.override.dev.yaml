@@ -1,0 +1,67 @@
+---
+
+include:
+  - compose.override.base.yaml
+
+
+services:
+
+  memcached:
+    restart: no
+
+  rabbitmq:
+    restart: no
+
+  zulip:
+    # don't build zulip when the container is started (doesn't work if specified in included base file)
+    build: !reset null
+    ports: !reset []
+
+    restart: no
+    environment:
+      SETTING_REDIS_HOST: zulip-redis
+    networks:
+      - default
+      - api
+
+  redis:
+    restart: no
+    hostname: zulip-redis
+
+  database:
+    restart: no
+    volumes: !override
+      - "database:/var/lib/postgresql:rw"
+
+
+  # stand-alone caddy for local testing
+  caddy:
+    image: caddy:2.11-alpine
+    restart: no
+    ports:
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:443:443/udp"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+
+
+volumes:
+  zulip:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "./zulip-data"
+
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "./zulip-postgres"
+
+
+networks:
+  api:
+    external: true
